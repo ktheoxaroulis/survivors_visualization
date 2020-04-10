@@ -25,40 +25,29 @@ def main():
 
     elif page == "Sociodemographic":
         st.header("Epidemiological Data")
-        st.write( ep_data.drop(['userId'], axis=1))
+      #  st.write( ep_data.drop(['userId'], axis=1))
+
+        # Show Dataset
+        if st.checkbox("Preview Data Frame"):
+            st.write(ep_data.drop(['userId'], axis=1))
+
         st.header("Epidemiological Charts")
-        st.subheader("Bar Plots")
-        x_axis = st.selectbox("Choose a variable for the x-axis", ep_data.columns, index=3)
-        visualize_descriptive(ep_data, x_axis)
-
-        if  ep_data['age'] < 18:
-            ep_data['ageRange'] = '<18'
-        elif ep_data['age'] >= 18 and ep_data['age'] <= 24:
-            ep_data['ageRange'] = '18-24'
-        elif ep_data['age'] >= 25 and ep_data['age'] <= 34:
-            ep_data['ageRange'] = '25-34'
-        elif ep_data['age'] >= 35 and ep_data['age'] <= 44:
-            ep_data['ageRange'] = '35-44'
-        elif ep_data['age'] >= 45 and ep_data['age'] <= 54:
-            ep_data['ageRange'] = '45-54'
-        elif ep_data['age'] >= 55 and ep_data['age'] <= 64:
-            ep_data['ageRange'] = '55-64'
-        elif ep_data['age'] >= 65:
-            ep_data['ageRange'] = '>65'
-        else :
-            ep_data['ageRange'] = 'Unknown'
-         
-        
-            
-        ep_data['age'].value_counts().plot(kind='bar', figsize=(7, 6), rot=0)
+        if st.checkbox("Preview Plots"):
+            data_dim = st.radio('What type of plots do you want to show', ('bars', 'histograms'))
+            if data_dim == 'bars':
+                ######## Static predifined  ###
+                sns.set(font_scale=1.4)
+                ep_data['gender'].value_counts().plot(kind='bar', figsize=(14, 3), rot=0)
+                plt.xlabel("Gender", labelpad=14)
+                plt.ylabel("Count of People", labelpad=14)
+                plt.title("Count of People Who Recovered by Gender", y=1.02)
+                st.pyplot()
+                ######## Dynamic ###
+                st.subheader("Dynamic Bar Plots")
+                x_axis = st.selectbox("Choose a variable for the x-axis in order to count values", ep_data.columns, index=3)
+                visualize_descriptive(ep_data, x_axis)
 
 
-        sns.set(font_scale=1.4)
-        ep_data['gender'].value_counts().plot(kind='bar', figsize=(7, 6), rot=0)
-        plt.xlabel("Gender", labelpad=14)
-        plt.ylabel("Count of People", labelpad=14)
-        plt.title("Count of People Who Received Tips by Gender", y=1.02)
-        st.pyplot()
 
     elif page == "Exploration":
         st.title("Data Exploration")
