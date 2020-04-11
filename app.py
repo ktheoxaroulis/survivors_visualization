@@ -7,10 +7,11 @@ from PIL import Image
 import seaborn as sns
 
 def main():
-    df = load_data()
     ep_data = load_ep_data()
+    ac_data = load_ac_data()
+    symp_data = load_symp_data()
 
-    page = st.sidebar.selectbox("Choose a page", ["Homepage", "Sociodemographic", "Exploration"])
+    page = st.sidebar.selectbox("Choose a page", ["Homepage", "Sociodemographic", "Acute Phase", "Symptoms"])
     team_image = Image.open("images/image.png")
     corona_image = Image.open("images/corona.png")
 
@@ -93,7 +94,7 @@ def main():
 
         elif charttable_dim == 'charts':
             st.header("Epidemiological Charts")
-            data_dim = st.radio('What type of plots do you want to show', ('bars', 'histograms'))
+            data_dim = st.radio('What type of plots do you want to show', ('bars', 'density'))
             if data_dim == 'bars':
                 ######## Static predifined  ###
                 sns.set(font_scale=1.4)
@@ -107,23 +108,37 @@ def main():
                 st.subheader("Dynamic Bar Plots")
                 x_axis = st.selectbox("Choose a variable for the x-axis in order to count values", ep_data.columns, index=3)
                 visualize_descriptive(ep_data, x_axis)
+            elif data_dim == 'density':
+
+                st.subheader("Kernel Density Estimation")
+                plt.figure(figsize=(10, 6))
+                sns.set_style("darkgrid")
+                plt.title("Age distribution of the survivors")
+                sns.kdeplot(data=ep_data['age'], shade=True)
+                st.pyplot()
 
 
+    elif page == "Acute Phase":
+        st.title("Acute phase Data")
 
-    elif page == "Exploration":
-        st.title("Data Exploration")
-        st.image(corona_image, width =100)
-        x_axis = st.selectbox("Choose a variable for the x-axis", df.columns, index=3)
-        y_axis = st.selectbox("Choose a variable for the y-axis", df.columns, index=4)
-        visualize_data(df, x_axis, y_axis)
 
-@st.cache
-def load_data():
-    df = data.cars()
-    return df
+    elif page == "Symptoms":
+        st.title("Symptoms Data after Recovered")
+
+
+@st.cache(allow_output_mutation=True)
 def load_ep_data():
     ep_data = pd.read_csv("data/epidemiological.csv")
     return ep_data
+@st.cache(allow_output_mutation=True)
+def load_ac_data():
+    ac_data = pd.read_csv("data/acutePhase.csv")
+    return ac_data
+@st.cache(allow_output_mutation=True)
+def load_symp_data():
+     symp_data = pd.read_csv("data/symptoms.csv")
+     return symp_data
+
 
 def visualize_descriptive(df, x_axis):
     graph = alt.Chart(df).mark_bar().encode(
@@ -133,14 +148,7 @@ def visualize_descriptive(df, x_axis):
     ).interactive()
     st.write(graph)
 
-def visualize_data(df, x_axis, y_axis):
-    graph = alt.Chart(df).mark_circle(size=60).encode(
-        x=x_axis,
-        y=y_axis,
-        color='Origin',
-        tooltip=['Name', 'Origin', 'Horsepower', 'Miles_per_Gallon']
-    ).interactive()
-    st.write(graph)
+
 
 if __name__ == "__main__":
     main()
