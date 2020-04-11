@@ -4,6 +4,7 @@ import altair as alt
 import pandas as pd
 from PIL import Image
 import seaborn as sns
+import db
 from matplotlib.font_manager import FontProperties
 
 
@@ -31,7 +32,7 @@ def main():
 
         # Show Dataset
         if st.checkbox("Preview Data Frame"):
-            st.write(ep_data.drop(['userId'], axis=1))
+            st.write(ep_data.drop(['name'], axis=1))
 
         charttable_dim = st.radio('What type of info would you like to see', ('tables', 'charts'))
         if charttable_dim == 'tables':
@@ -59,7 +60,7 @@ def main():
                     ageRange[i] = 'Unknown'
 
             st.subheader("Age Summary")
-            ep_data.insert(2, "ageRange", ageRange)
+            ep_data["ageRange"] = ageRange
             counts = ep_data['ageRange'].value_counts()
             #percent = ep_data['ageRange'].value_counts(normalize=True)
             percent100 = ep_data['ageRange'].value_counts(normalize=True).mul(100).round(decimals=1).astype(str) + '%'
@@ -78,9 +79,9 @@ def main():
             ## Marital Status Summary
             st.subheader("Marital Summary")
 
-            mar_counts = ep_data['maritalStatus'].value_counts()
-            mar_percent = ep_data['maritalStatus'].value_counts(normalize=True)
-            mar_percent100 = ep_data['maritalStatus'].value_counts(normalize=True).mul(100).round(decimals=1).astype(
+            mar_counts = ep_data['material_status'].value_counts()
+            mar_percent = ep_data['material_status'].value_counts(normalize=True)
+            mar_percent100 = ep_data['material_status'].value_counts(normalize=True).mul(100).round(decimals=1).astype(
                 str) + '%'
             marSumm = pd.DataFrame({'#users': mar_counts, '%Users': mar_percent100})
             st.write(marSumm.sort_values('%Users'))
@@ -88,9 +89,9 @@ def main():
             ## Employee Status Summary
             st.subheader("Employee Status Summary")
 
-            emp_counts = ep_data['employment'].value_counts()
-            emp_percent = ep_data['employment'].value_counts(normalize=True)
-            emp_percent100 = ep_data['employment'].value_counts(normalize=True).mul(100).round(decimals=1).astype(str) + '%'
+            emp_counts = ep_data['employment_status'].value_counts()
+            emp_percent = ep_data['employment_status'].value_counts(normalize=True)
+            emp_percent100 = ep_data['employment_status'].value_counts(normalize=True).mul(100).round(decimals=1).astype(str) + '%'
             empSumm = pd.DataFrame({'#users': emp_counts, '%Users': emp_percent100})
             st.write(empSumm.sort_values('%Users'))
 
@@ -169,7 +170,7 @@ def main():
 
 @st.cache(allow_output_mutation=True)
 def load_ep_data():
-    ep_data = pd.read_csv("data/epidemiological.csv")
+    ep_data = db.get_ep_data()
     return ep_data
 @st.cache(allow_output_mutation=True)
 def load_ac_data():
