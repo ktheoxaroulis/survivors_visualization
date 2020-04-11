@@ -139,12 +139,23 @@ def main():
                 sns.kdeplot(data=ep_data['age'], shade=True)
                 st.pyplot()
 
+                plt.figure(figsize=(10, 6))
+                sns.set_style("darkgrid")
+                plt.title("Age distribution of the survivors by gender")
+                ep_f = ep_data.query('gender == "F"')
+                ep_m = ep_data.query('gender == "M"')
+
+                sns.kdeplot(data=ep_f['age'], label="Female", shade=True)
+                sns.kdeplot(data=ep_m['age'], label="Male", shade=True)
+                st.pyplot()
 
     elif page == "Acute Phase":
         st.title("Acute phase Data")
-
+        st.write(pd.crosstab(index=ac_data['fever'], columns=ac_data['treatment']))
 
     elif page == "Symptoms":
+
+
         st.title("Symptoms Data after Recovered")
 
         # Create one row for each symptom
@@ -164,15 +175,24 @@ def main():
         symp_data = pd.DataFrame(new_rows)
         symp_data
 
-        symp_agg = symp_data.groupby(["date", "symptom_text"])["symptoms"].agg(
+        symp_agg = symp_data.groupby(["date", "symptom_text"])["assigned_to_user"].agg(
             symptomCount=('symptom_text', 'count')).reset_index()
+
+        symp_tab = symp_data.groupby(["date", "symptom_text"])["assigned_to_user"].agg(
+            symptomCount=('symptom_text', 'count')).unstack('date').reset_index()
+        st.write(symp_tab)
+
+        sns.set(rc={'figure.figsize': (11, 11)})
 
         g = sns.lineplot(x="date", y="symptomCount", hue="symptom_text", data=symp_agg)
 
         fontP = FontProperties()
         fontP.set_size('small')
-        g.legend(bbox_to_anchor=(2, 0), ncol=2, loc='lower right', prop=fontP)
+        g.legend(ncol=4, loc=1, prop=fontP)
         st.pyplot()
+
+    elif page == "Machine Learning Technics":
+        st.title("Machine Learning Technics")
 
 
 @st.cache(allow_output_mutation=True)
