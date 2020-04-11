@@ -1,4 +1,3 @@
-from vega_datasets import data
 import matplotlib.pyplot as plt
 import streamlit as st
 import altair as alt
