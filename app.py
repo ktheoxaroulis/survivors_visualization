@@ -6,7 +6,26 @@ from PIL import Image
 import seaborn as sns
 import db
 from matplotlib.font_manager import FontProperties
+from bson.objectid import ObjectId
 
+def splitDataFrameList(df,target_column,separator):
+    ''' df = dataframe to split,
+    target_column = the column containing the values to split
+    separator = the symbol used to perform the split
+    returns: a dataframe with each entry for the target column separated, with each element moved into a new row. 
+    The values in the other columns are duplicated across the newly divided rows.
+    '''
+    def splitListToRows(row,row_accumulator,target_column,separator):
+        split_row = str(row[target_column]).split(separator)
+        for s in split_row:
+            new_row = row.to_dict()
+            string = s.replace("ObjectId('", "").replace("')", "").replace(" ", "").replace("[","").replace("]","")
+            new_row[target_column] = ObjectId(string)
+            row_accumulator.append(new_row)
+    new_rows = []
+    df.apply(splitListToRows,axis=1,args = (new_rows,target_column,separator))
+    new_df = pd.DataFrame(new_rows)
+    return new_df
 
 def main():
     ep_data = load_ep_data()
@@ -128,19 +147,27 @@ def main():
     elif page == "Symptoms":
         st.title("Symptoms Data after Recovered")
 
-        symp_data['date'] = symp_data['dateTime'].str.split('T', expand=True)[0]
-        symp_data = symp_data['symptomId'].str.split(',', expand=True).merge(symp_data, left_index=True,
-                                                                             right_index=True) \
-            .drop(["symptomId", "dateTime"], axis=1) \
-            .melt(id_vars=['userId', 'date'], value_name="symptomId")
+        # Create one row for each symptom
+        symp_data = splitDataFrameList(symp_data,"symptoms",",")
+        symp_data['date'] = symp_data['time'].dt.strftime('%Y-%m-%d')
+
+        # Add symptom text to each row
+        new_rows = []
+        def add_symptom_text(row):
+            text = sympM_data[sympM_data["_id"] == row["symptoms"]].text.values[0]
+            if text != None:
+                new_row = row.to_dict()
+                new_row["symptom_text"] = text
+                new_rows.append(new_row)
+
+        symp_data.apply(add_symptom_text, axis=1)
+        symp_data = pd.DataFrame(new_rows)
         symp_data
 
-        symp_data = pd.merge(symp_data, sympM_data, on='symptomId')
+        symp_agg = symp_data.groupby(["date", "symptom_text"])["symptoms"].agg(
+            symptomCount=('symptom_text', 'count')).reset_index()
 
-        symp_agg = symp_data.groupby(["date", "symptomName"])["userId"].agg(
-            symptomCount=('symptomName', 'count')).reset_index()
-
-        g = sns.lineplot(x="date", y="symptomCount", hue="symptomName", data=symp_agg)
+        g = sns.lineplot(x="date", y="symptomCount", hue="symptom_text", data=symp_agg)
 
         fontP = FontProperties()
         fontP.set_size('small')
@@ -158,12 +185,12 @@ def load_ac_data():
     return ac_data
 @st.cache(allow_output_mutation=True)
 def load_symp_data():
-     symp_data = pd.read_csv("data/symptoms.csv")
+     symp_data = db.get_symp_survey_data()
      return symp_data
 
 @st.cache(allow_output_mutation=True)
 def load_sympM_data():
-     sympM_data = pd.read_csv("data/sympMaster.csv")
+     sympM_data = db.get_symptom_id_matching_df()
      return sympM_data
 
 def visualize_descriptive(df, x_axis):
