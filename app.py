@@ -5,11 +5,14 @@ import altair as alt
 import pandas as pd
 from PIL import Image
 import seaborn as sns
+from matplotlib.font_manager import FontProperties
+
 
 def main():
     ep_data = load_ep_data()
     ac_data = load_ac_data()
     symp_data = load_symp_data()
+    sympM_data = load_sympM_data()
 
     page = st.sidebar.selectbox("Choose a page", ["Homepage", "Sociodemographic", "Acute Phase", "Symptoms"])
     team_image = Image.open("images/image.png")
@@ -125,6 +128,25 @@ def main():
     elif page == "Symptoms":
         st.title("Symptoms Data after Recovered")
 
+        symp_data['date'] = symp_data['dateTime'].str.split('T', expand=True)[0]
+        symp_data = symp_data['symptomId'].str.split(',', expand=True).merge(symp_data, left_index=True,
+                                                                             right_index=True) \
+            .drop(["symptomId", "dateTime"], axis=1) \
+            .melt(id_vars=['userId', 'date'], value_name="symptomId")
+        symp_data
+
+        symp_data = pd.merge(symp_data, sympM_data, on='symptomId')
+
+        symp_agg = symp_data.groupby(["date", "symptomName"])["userId"].agg(
+            symptomCount=('symptomName', 'count')).reset_index()
+
+        g = sns.lineplot(x="date", y="symptomCount", hue="symptomName", data=symp_agg)
+
+        fontP = FontProperties()
+        fontP.set_size('small')
+        g.legend(bbox_to_anchor=(2, 0), ncol=2, loc='lower right', prop=fontP)
+        st.pyplot()
+
 
 @st.cache(allow_output_mutation=True)
 def load_ep_data():
@@ -139,6 +161,10 @@ def load_symp_data():
      symp_data = pd.read_csv("data/symptoms.csv")
      return symp_data
 
+@st.cache(allow_output_mutation=True)
+def load_sympM_data():
+     sympM_data = pd.read_csv("data/sympMaster.csv")
+     return sympM_data
 
 def visualize_descriptive(df, x_axis):
     graph = alt.Chart(df).mark_bar().encode(
