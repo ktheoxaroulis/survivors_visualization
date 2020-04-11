@@ -119,12 +119,23 @@ def main():
                 sns.kdeplot(data=ep_data['age'], shade=True)
                 st.pyplot()
 
+                plt.figure(figsize=(10, 6))
+                sns.set_style("darkgrid")
+                plt.title("Age distribution of the survivors by gender")
+                ep_f = ep_data.query('gender == "F"')
+                ep_m = ep_data.query('gender == "M"')
+
+                sns.kdeplot(data=ep_f['age'], label="Female", shade=True)
+                sns.kdeplot(data=ep_m['age'], label="Male", shade=True)
+                st.pyplot()
 
     elif page == "Acute Phase":
         st.title("Acute phase Data")
-
+        st.write(pd.crosstab(index=ac_data['fever'], columns=ac_data['treatment']))
 
     elif page == "Symptoms":
+
+
         st.title("Symptoms Data after Recovered")
 
         symp_data['date'] = symp_data['dateTime'].str.split('T', expand=True)[0]
@@ -132,19 +143,28 @@ def main():
                                                                              right_index=True) \
             .drop(["symptomId", "dateTime"], axis=1) \
             .melt(id_vars=['userId', 'date'], value_name="symptomId")
-        symp_data
 
         symp_data = pd.merge(symp_data, sympM_data, on='symptomId')
 
         symp_agg = symp_data.groupby(["date", "symptomName"])["userId"].agg(
             symptomCount=('symptomName', 'count')).reset_index()
 
+        symp_tab = symp_data.groupby(["date", "symptomName"])["userId"].agg(
+            symptomCount=('symptomName', 'count')).unstack('date').reset_index()
+        st.write(symp_tab)
+
+
+        sns.set(rc={'figure.figsize': (11, 11)})
+
         g = sns.lineplot(x="date", y="symptomCount", hue="symptomName", data=symp_agg)
 
         fontP = FontProperties()
         fontP.set_size('small')
-        g.legend(bbox_to_anchor=(2, 0), ncol=2, loc='lower right', prop=fontP)
+        g.legend(ncol=4, loc=1, prop=fontP)
         st.pyplot()
+
+    elif page == "Machine Learning Technics":
+        st.title("Machine Learning Technics")
 
 
 @st.cache(allow_output_mutation=True)
