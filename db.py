@@ -26,3 +26,24 @@ def get_symptom_id_matching(symptom_id):
 def get_symptom_id_matching_df():
   df = pd.DataFrame(list(db.symptoms.find()))
   return df
+
+def get_ac_data():
+  df = pd.DataFrame(list(db.phases.find()))
+
+  # Remove unnecessary columns
+  df = df.drop(["_id", "__v"], axis=1)
+
+  new_rows = list()
+  def merge_symptoms(row):
+    symptoms = row["symptoms"]
+    new_rows.append(symptoms)
+
+  df.apply(merge_symptoms, axis=1)
+  symptoms_df = pd.DataFrame(new_rows)
+
+  symptoms_df.drop(["_id"], axis=1)
+  df = df.drop(["symptoms"], axis=1)
+
+  df = pd.concat([df, symptoms_df], axis=1)
+
+  return df

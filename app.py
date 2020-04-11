@@ -201,7 +201,7 @@ def load_ep_data():
     return ep_data
 @st.cache(allow_output_mutation=True)
 def load_ac_data():
-    ac_data = pd.read_csv("data/acutePhase.csv")
+    ac_data = db.get_ac_data()
     return ac_data
 @st.cache(allow_output_mutation=True)
 def load_symp_data():
