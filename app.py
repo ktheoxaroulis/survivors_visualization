@@ -174,7 +174,10 @@ def main():
 
     elif page == "Acute Phase":
         st.title("Acute phase Data")
-        st.write(pd.crosstab(index=ac_data['fever'], columns=ac_data['treatment']))
+        if st.checkbox("Preview Data Frame"):
+            st.write(ac_data.drop(["assigned_to_user", "_id", "time"], axis=1))
+
+        # st.write(pd.crosstab(index=ac_data['fever'], columns=ac_data[['treatment']))
 
         ap_data_summ = ac_data.drop(["diagnosis","isolation_stage","treatment","assigned_to_user"], axis = 1)
         ap_symp_sum = pd.DataFrame(ap_data_summ.sum(axis=0).reset_index())
@@ -206,16 +209,39 @@ def main():
 
         symp_data.apply(add_symptom_text, axis=1)
         symp_data = pd.DataFrame(new_rows)
-        symp_data
+        # symp_data
 
         symp_agg = symp_data.groupby(["date", "symptom_text"])["assigned_to_user"].agg(
             symptomCount=('symptom_text', 'count')).reset_index()
 
         symp_tab = symp_data.groupby(["date", "symptom_text"])["assigned_to_user"].agg(
             symptomCount=('symptom_text', 'count')).unstack('date').reset_index()
-        st.write(symp_tab)
+        
+        if st.checkbox("View Tables"):
+            st.write(symp_tab)
 
         sns.set(rc={'figure.figsize': (11, 11)})
+
+        
+
+        symp_clus = symp_data.groupby(["assigned_to_user","symptom_text"]).agg(
+        symptomCount=('symptom_text', 'count')).unstack('symptom_text').reset_index()
+        symp_clus = symp_clus.fillna(0)
+        symp_clus.columns = symp_clus.columns.map('|'.join).str.strip('|')
+        symp_clus = symp_clus.drop(["assigned_to_user"], axis = 1)
+
+        def remove_prefix(prefix):
+            return lambda x: x[len(prefix):]
+
+        symp_clus = symp_clus.rename(remove_prefix('symptomCount_'), axis='columns')
+
+        symp_clus_summ = pd.DataFrame(symp_clus.sum(axis=0).reset_index() )
+        symp_clus_summ.columns = ['surveySymptoms', 'count'] 
+
+        fig = px.bar(symp_clus_summ.sort_values('count', ascending=False), 
+                    y="count", x="surveySymptoms", color='surveySymptoms', 
+                    log_y=True, template='ggplot2', title=' Post Recovery symptom summary')
+        st.plotly_chart(fig, use_container_width=True)
 
         g = sns.lineplot(x="date", y="symptomCount", hue="symptom_text", data=symp_agg)
 
@@ -223,6 +249,7 @@ def main():
         fontP.set_size('small')
         g.legend(ncol=4, loc=1, prop=fontP)
         st.pyplot()
+
 
     elif page == "Machine Learning Technics":
         st.title("Machine Learning Technics")
