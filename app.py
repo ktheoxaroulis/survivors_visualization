@@ -173,7 +173,7 @@ def main():
                 st.pyplot()
 
     elif page == "Acute Phase":
-        st.title("Acute phase Data")
+        st.title("Acute Phase Data")
         if st.checkbox("Preview Data Frame"):
             st.write(ac_data.drop(["assigned_to_user", "_id", "time"], axis=1))
 
@@ -185,14 +185,14 @@ def main():
 
         fig = px.bar(ap_symp_sum.sort_values('count', ascending=False), 
              y="count", x="acuteSymptoms", color='acuteSymptoms', 
-             log_y=True, template='ggplot2', title=' Acute Phase symptom summary')
+             log_y=True, template='ggplot2', title=' Acute Phase Symptom Summary')
 
         st.plotly_chart(fig, use_container_width=True)
 
     elif page == "Symptoms":
 
 
-        st.title("Symptoms Data after Recovered")
+        st.title("Symptoms Data after/during Recovery")
 
         # Create one row for each symptom
         symp_data = splitDataFrameList(symp_data,"symptoms",",")
@@ -240,7 +240,7 @@ def main():
 
         fig = px.bar(symp_clus_summ.sort_values('count', ascending=False), 
                     y="count", x="surveySymptoms", color='surveySymptoms', 
-                    log_y=True, template='ggplot2', title=' Post Recovery symptom summary')
+                    log_y=True, template='ggplot2', title=' Aggregated Symptoms during/post Recovery')
         st.plotly_chart(fig, use_container_width=True)
 
         g = sns.lineplot(x="date", y="symptomCount", hue="symptom_text", data=symp_agg)
