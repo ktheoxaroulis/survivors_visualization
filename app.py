@@ -7,6 +7,8 @@ import seaborn as sns
 import db
 from matplotlib.font_manager import FontProperties
 from bson.objectid import ObjectId
+import plotly.express as px
+import plotly.offline as py
 
 def splitDataFrameList(df,target_column,separator):
     ''' df = dataframe to split,
@@ -45,6 +47,27 @@ def main():
                   \nThose who do or will recover probably will develop antibodies. It is not known yet if people who recover are immune for life or if they can later become infected with a different species of Covid virus. Some survivors may have long-term complications . \n \
                   \nThe idea was to create a simple app where those who were recovered will fill periodically a survey, tracking down several possible health issues \n \
                   \n Here you ll find the on-going results and the analysis of these data \n ")
+
+        def add_date(row):
+            user_id = row._id
+            time_ac = ac_data[ac_data.assigned_to_user == user_id].iloc[0].time.strftime("%Y-%m-%d")
+            return time_ac  
+        cases = pd.DataFrame()
+        cases[["Country","_id"]] = ep_data[["country", "_id"]].dropna()
+        cases["Date"] = cases.apply(lambda row: add_date(row), axis=1) 
+        cases = cases.groupby(['Country', 'Date']).count().reset_index().rename(columns={'_id':'casesCount'})
+        fig = px.choropleth(cases, locations="Country", locationmode='country names', 
+                     color="casesCount", hover_name="Country",hover_data = [cases.casesCount],projection="mercator",
+                     animation_frame="Date",width=900, height=700,
+                     color_continuous_scale='Reds',
+                     range_color=[1,40],
+                     title='World Map of Coronavirus'
+                     )
+        fig.update_layout(geo=dict(
+            showframe=False,
+            showcoastlines=False
+        ))
+        st.plotly_chart(fig, use_container_width=False)
 
     elif page == "Sociodemographic":
         st.header("Epidemiological Data")
