@@ -176,6 +176,16 @@ def main():
         st.title("Acute phase Data")
         st.write(pd.crosstab(index=ac_data['fever'], columns=ac_data['treatment']))
 
+        ap_data_summ = ac_data.drop(["diagnosis","isolation_stage","treatment","assigned_to_user"], axis = 1)
+        ap_symp_sum = pd.DataFrame(ap_data_summ.sum(axis=0).reset_index())
+        ap_symp_sum.columns = ['acuteSymptoms', 'count'] 
+
+        fig = px.bar(ap_symp_sum.sort_values('count', ascending=False), 
+             y="count", x="acuteSymptoms", color='acuteSymptoms', 
+             log_y=True, template='ggplot2', title=' Acute Phase symptom summary')
+
+        st.plotly_chart(fig, use_container_width=True)
+
     elif page == "Symptoms":
 
 
