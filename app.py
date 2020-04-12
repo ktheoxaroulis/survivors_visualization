@@ -9,6 +9,7 @@ from matplotlib.font_manager import FontProperties
 from bson.objectid import ObjectId
 import plotly.express as px
 import plotly.offline as py
+import plotly.graph_objects as go
 
 def splitDataFrameList(df,target_column,separator):
     ''' df = dataframe to split,
@@ -188,6 +189,46 @@ def main():
              log_y=True, template='ggplot2', title=' Acute Phase Symptom Summary')
 
         st.plotly_chart(fig, use_container_width=True)
+
+
+        ap_diagnosis = ac_data.groupby(['diagnosis'])['assigned_to_user'].count().reset_index()
+        
+        # Acute Phase Treatment Summary ####
+        ap_treatment = ac_data.groupby(['treatment'])['assigned_to_user'].count().reset_index()
+        ap_treatment.rename(columns={'assigned_to_user':'reported_count'}, inplace=True)
+        
+        ap_diagnosis.rename(columns={'assigned_to_user':'reported_count'}, inplace=True)
+        # fig = px.pie(ap_diagnosis, values='reported_count', names='diagnosis', color='diagnosis',
+        #              title='Contribution of Acute Phase Diagnosis',
+        #              color_discrete_map={'clinical_only':'lightcyan',
+        #                                  'swab_antibody_test':'cyan'})
+        fig = go.Figure(data=[go.Pie(labels=ap_diagnosis['diagnosis'], values=ap_treatment['reported_count'], hole=.3)])
+        fig.update_layout(title='Contribution of Acute Phase Diagnosis')
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        # fig = px.pie(ap_treatment, values='reported_count', names='treatment', color='treatment',
+        #              title='Contribution of Acute Phase treatment'
+        #              )
+        fig = go.Figure(data=[go.Pie(labels=ap_treatment['treatment'], values=ap_treatment['reported_count'], hole=.3)])
+        fig.update_layout(title='Contribution of Acute Phase Treatment')
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Acute Phase Isolation stage Summary ####
+        ap_isolation = ac_data.groupby(['isolation_stage'])['assigned_to_user'].count().reset_index()
+
+        ap_isolation.rename(columns={'assigned_to_user':'reported_count'}, inplace=True)
+        # fig = px.pie(ap_isolation, values='reported_count', names='isolation_stage', color='isolation_stage',
+        #              title='Contribution of Acute Phase isolation stage'
+        #              )
+        fig = go.Figure(data=[go.Pie(labels=ap_isolation['isolation_stage'], values=ap_isolation['reported_count'], hole=.3)])
+        fig.update_layout(title='Contribution of Acute Phase Isolation Stage')
+        
+        st.plotly_chart(fig, use_container_width=True)
+
+
+
 
     elif page == "Symptoms":
 
