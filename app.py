@@ -61,7 +61,7 @@ def main():
                      animation_frame="Date",width=900, height=700,
                      color_continuous_scale='Reds',
                      range_color=[1,40],
-                     title='World Map of Coronavirus'
+                     title='World Distribution of Users'
                      )
         fig.update_layout(geo=dict(
             showframe=False,
