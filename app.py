@@ -142,8 +142,8 @@ def main():
                 plt.figure(figsize=(10, 6))
                 sns.set_style("darkgrid")
                 plt.title("Age distribution of the survivors by gender")
-                ep_f = ep_data.query('gender == "F"')
-                ep_m = ep_data.query('gender == "M"')
+                ep_f = ep_data.query('gender == "f"')
+                ep_m = ep_data.query('gender == "m"')
 
                 sns.kdeplot(data=ep_f['age'], label="Female", shade=True)
                 sns.kdeplot(data=ep_m['age'], label="Male", shade=True)
